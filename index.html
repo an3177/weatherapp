@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #weather-info {
+            margin-top: 20px;
+        }
+        .city-weather {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
+    <script>
+        let accessToken = '';
+
+        async function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const response = await fetch('http://127.0.0.1:8000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `username=${username}&password=${password}`
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                accessToken = data.access_token;
+                document.getElementById("login-status").innerText = "Login successful";
+                document.getElementById("weather-form").style.display = "block";
+                document.getElementById("login-form").style.display = "none";
+            } else {
+                document.getElementById("login-status").innerText = "Login failed";
+            }
+        }
+
+        async function getWeather() {
+            const citiesInput = document.getElementById("cities").value;
+            const cities = citiesInput.split(',').map(city => city.trim());
+            const params = new URLSearchParams();
+            cities.forEach(city => params.append("cities", city));
+
+            const response = await fetch(`http://127.0.0.1:8000/getweathers/?${params.toString()}`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                displayWeather(data);
+            } else {
+                document.getElementById("weather-info").innerHTML = `Error: ${response.status}`;
+            }
+        }
+
+        function displayWeather(weatherData) {
+            const weatherInfoDiv = document.getElementById("weather-info");
+            weatherInfoDiv.innerHTML = ""; // Clear previous results
+            weatherData.forEach(cityWeather => {
+                const cityDiv = document.createElement("div");
+                cityDiv.className = "city-weather";
+                cityDiv.innerHTML = `
+                    <h2>Weather in ${cityWeather.city}</h2>
+                    <p>Temperature: ${cityWeather.temperature} °C</p>
+                    <p>Description: ${cityWeather.description}</p>
+                    <p>Humidity: ${cityWeather.humidity}%</p>
+                    <p>Wind Speed: ${cityWeather.wind_speed} m/s</p>
+                `;
+                weatherInfoDiv.appendChild(cityDiv);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Weather App with Authentication</h1>
+    <div id="login-form">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p id="login-status"></p>
+    </div>
+
+    <div id="weather-form" style="display: none;">
+        <h2>Get Weather Data</h2>
+        <input type="text" id="cities" placeholder="Enter cities separated by commas">
+        <button onclick="getWeather()">Get Weather</button>
+    </div>
+
+    <div id="weather-info"></div>
+</body>
+</html>
