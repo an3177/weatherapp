@@ -1,2 +1,2 @@
 # weatherapp
-Backend Application for Weather App using FastAPI and Weather Api
+BApplication for Weather App using FastAPI, Javascript, HTML, CSS, and a Weather Api
