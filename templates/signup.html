@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup/Login - Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            justify-content: space-evenly;
+            background-color: #bfbdc9;
+            color: #ffffff;
+        }
+        #signup-status, #login-status {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            padding: 10px;
+            font-size: 20px;
+            padding-top: 5px;
+            text-align: center;
+        }
+        input {
+            display: block;
+            padding-top: 5px;
+            border: none;
+            margin: 0 auto;
+        }
+        h2 {
+            padding-right: 8px;
+            padding-left: 8px;
+        }
+        fieldset {
+            padding-top: 0px;
+            background-color: #8bc593;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            border: none;
+            
+        }
+        .welcome {
+            text-align: center;
+            width: 50%;
+        }
+        .login-field {
+            margin: auto;
+            width: 50%;
+        }
+        input, button {
+            display: block;
+            margin: 0 auto;
+        }
+        button{
+            height:30px;
+            background-color:#ffffff;
+            border:none;
+            border-radius: 2px;
+        }
+        #signup-button{
+            width:50%;
+        }
+        #login-button{
+            width:20%;
+        }
+    </style>
+    <script>
+        async function signup() {
+            const email = document.getElementById("email").value;
+            const first_name = document.getElementById("first_name").value;
+            const last_name = document.getElementById("last_name").value;
+            const password = document.getElementById("signup-password").value;
+
+            const response = await fetch('http://127.0.0.1:8000/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    first_name: first_name,
+                    last_name: last_name,
+                    password: password
+                })
+            });
+
+            const statusElement = document.getElementById("signup-status");
+            if (response.ok) {
+                statusElement.innerText = "Signup successful";
+                statusElement.style.color = "green";
+            } else {
+                const data = await response.json();
+                statusElement.innerText = `Signup failed: ${data.detail}`;
+                statusElement.style.color = "red";
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("login-password").value;
+            const response = await fetch('http://127.0.0.1:8000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `username=${username}&password=${password}`
+            });
+
+            const statusElement = document.getElementById("login-status");
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('accessToken', data.access_token);
+                statusElement.innerText = "Login successful";
+                statusElement.style.color = "green";
+                window.location.href = 'index.html';
+            } else {
+                const data = await response.json();
+                statusElement.innerText = `Login failed: ${data.detail}`;
+                statusElement.style.color = "red";
+            }
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <h1>Weather App Signup</h1>
+        <fieldset>
+            <div id="signup-form">
+                <h2>Create an Account</h2>
+                <label for="email">Enter your email: <input type="email" id="email" placeholder="Email" required></label>
+                <label for="first_name">Enter your first name: <input type="text" id="first_name" placeholder="First Name" required></label>
+                <label for="last_name">Enter your last name: <input type="text" id="last_name" placeholder="Last Name" required></label>
+                <label for="signup-password">Create a new password: <input type="password" id="signup-password" placeholder="Password" required></label>
+                <button id="signup-button" onclick="signup()">Signup</button>
+                <p id="signup-status"></p>
+            </div>
+        </fieldset>
+    </div>
+    <div class="welcome">
+        <h1>Welcome to my weather app!</h1>
+        <p>This application is used to find different key features of a city or multiple cities. If you have an account, go ahead and login or if you don't signup on the right!</p>
+        <fieldset class="login-field">
+            <div id="login-form">
+                <h2>Login</h2>
+                <label for="username">Enter your username: <input type="text" id="username" placeholder="Username" required></label>
+                <label for="login-password">Enter your password: <input type="password" id="login-password" placeholder="Password" required></label>
+                <button id="login-button"onclick="login()">Login</button>
+                <p id="login-status"></p>
+            </div>
+        </fieldset>
+    </div>
+</body>
+</html>

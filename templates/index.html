@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #bfbdc9;
+            color: white;
+        }
+        #weather-info {
+            margin-top: 20px;
+        }
+        .city-weather {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            color: black;
+            width: fit-content;
+            border: 1px solid black;
+        }
+        #weather-form{
+            width:20%;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            padding: 15px;
+            padding-top: 5px;
+            background-color: #8bc593;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        }
+        button{
+            margin-top: 5px;
+        }
+        .city-list{
+            display:flex;
+            gap: 10px;
+            flex-flow: wrap;
+        }
+    </style>
+    <script>
+        async function getWeather() {
+            const citiesInput = document.getElementById("cities").value;
+            const cities = citiesInput.split(',').map(city => city.trim());
+            const params = new URLSearchParams();
+            cities.forEach(city => params.append("cities", city));
+
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                document.getElementById("weather-info").innerHTML = "Error: Not authenticated";
+                return;
+            }
+
+            const response = await fetch(`http://127.0.0.1:8000/getweathers/?${params.toString()}`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                displayWeather(data);
+            } else {
+                document.getElementById("weather-info").innerHTML = `Error: ${response.status}`;
+            }
+        }
+
+        function displayWeather(weatherData) {
+            const weatherInfoDiv = document.getElementById("weather-info");
+            weatherInfoDiv.innerHTML = ""; // Clear previous results
+            weatherData.forEach(cityWeather => {
+                const cityDiv = document.createElement("div");
+                cityDiv.className = "city-weather";
+                cityDiv.innerHTML = `
+                    <h2>Weather in ${cityWeather.city}</h2>
+                    <p>Temperature: ${cityWeather.temperature} °C</p>
+                    <p>Description: ${cityWeather.description}</p>
+                    <p>Humidity: ${cityWeather.humidity}%</p>
+                    <p>Wind Speed: ${cityWeather.wind_speed} m/s</p>
+                `;
+                weatherInfoDiv.appendChild(cityDiv);
+                weatherInfoDiv.className = "city-list";
+            });
+        }
+    </script>
+</head>
+<body>
+    <div id="weather-form">
+        <h2 style="text-align:center;">Weather Information</h2>
+        <input type="text" id="cities" placeholder="Enter cities separated by commas">
+        <button onclick="getWeather()">Get Weather</button>
+    </div>
+    <div id="weather-info"></div>
+</body>
+</html>
